@@ -20,6 +20,7 @@ import datetime
 import time
 import json
 import re
+import os
 import requests
 import urllib3
 from FinMind.data import DataLoader
