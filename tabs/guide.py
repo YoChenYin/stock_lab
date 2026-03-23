@@ -51,7 +51,7 @@ def _step_card(num: int, title: str, body: str, badge_style: str = "both",
         f'<div style="background:#fff7ed;border-left:3px solid #f59e0b;'
         f'padding:8px 12px;border-radius:0 6px 6px 0;font-size:0.8em;color:#92400e;margin-top:6px;">'
         f'📐 操作規則：{signal_rule}</div>'
-    ) if signal_rule else ""
+    ) if signal_rule else "<div></div>"
 
     st.markdown(f"""
     <div style="border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;margin-bottom:10px;">
@@ -359,6 +359,7 @@ def render():
         "③ 信任 AI 編造數字：法說分析顯示「摘要不足」時，"
         "Gemini 給出的具體數字可能是推測的，不能當成真實指引引用。",
         badge_style="warn", badge_text="注意",
+        signal_rule="",
         tip="每次進場前問自己：這個進場依據來自真實數字，還是 AI 推算？")
 
     st.divider()

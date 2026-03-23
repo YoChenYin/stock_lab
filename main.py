@@ -21,6 +21,7 @@ from sector_data import STOCK_POOL, SECTOR_GROUPS
 import tabs.screener   as screener_page
 import tabs.heatmap    as heatmap_page
 import tabs.guide      as guide_page
+import tabs.watchlist  as watchlist_page
 from tabs.stock import overview, financials, outlook, chips, valuation, strategy, backtest_tab
 
 
@@ -34,7 +35,7 @@ st.set_page_config(
 st.markdown("""
 <style>
   .stTabs [data-baseweb="tab"] { font-size: 14px; font-weight: 500; }
-  .block-container { padding-top: 1.2rem; }
+  .block-container { padding-top: 3.2rem; }
   [data-testid="stMetricValue"] { font-size: 1.6em; }
 </style>
 """, unsafe_allow_html=True)
@@ -48,7 +49,7 @@ for k, v in [("selected_stock", None), ("last_backtest_pf", None), ("alert_queue
 with st.sidebar:
     st.title("📈 Stock Lab")
     st.divider()
-    nav = st.radio("功能", ["📖 使用指南", "1. 選股", "2. 族群資金熱圖", "3. 個股"])
+    nav = st.radio("功能", ["📖 使用指南", "📋 持倉追蹤", "1. 選股", "2. 族群資金熱圖", "3. 個股"])
 
 engine = WallStreetEngine()
 
@@ -58,6 +59,9 @@ show_staleness_banner()
 # ── Page routing ──
 if nav == "📖 使用指南":
     guide_page.render()
+
+elif nav == "📋 持倉追蹤":
+    watchlist_page.render(engine)
 
 elif nav == "1. 選股":
     screener_page.render(engine)
