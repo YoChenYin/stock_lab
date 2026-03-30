@@ -12,6 +12,25 @@ import streamlit as st
 import xgboost as xgb
 import numpy as np
 
+# ── Background scheduler: 每天台灣時間 01:00 自動抓美股籌碼 ──
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+import pytz
+
+def _run_chip_fetch():
+    from chip_module.fetch_daily import load_watchlist_from_json, run
+    tickers = load_watchlist_from_json()
+    run(tickers=tickers, skip_institutional=False)
+
+if "chip_scheduler_started" not in st.session_state:
+    scheduler = BackgroundScheduler(timezone=pytz.utc)
+    scheduler.add_job(
+        _run_chip_fetch,
+        CronTrigger(hour=17, minute=0, timezone=pytz.utc),  # UTC 17:00 = 台灣 01:00
+    )
+    scheduler.start()
+    st.session_state["chip_scheduler_started"] = True
+
 from engine.wall_street_engine import WallStreetEngine
 from engine.smart_money import calc_smart_money_score, calc_revenue_accel_score
 from engine.rocket_detector import detect_coiling
