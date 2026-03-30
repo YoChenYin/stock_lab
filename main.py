@@ -23,6 +23,10 @@ import tabs.heatmap    as heatmap_page
 import tabs.guide      as guide_page
 import tabs.watchlist  as watchlist_page
 from tabs.stock import overview, financials, outlook, chips, valuation, strategy, backtest_tab
+import tabs.chip_radar.scanner   as chip_scanner
+import tabs.chip_radar.deep_dive as chip_deep_dive
+import tabs.chip_radar.monitor   as chip_monitor
+import tabs.chip_radar.guide     as chip_guide
 
 
 st.set_page_config(
@@ -49,7 +53,24 @@ for k, v in [("selected_stock", None), ("last_backtest_pf", None), ("alert_queue
 with st.sidebar:
     st.title("📈 Stock Lab")
     st.divider()
-    nav = st.radio("功能", ["📖 使用指南", "📋 持倉追蹤", "1. 選股", "2. 族群資金熱圖", "3. 個股"])
+
+    market = st.radio(
+        "市場",
+        ["台股", "美股"],
+        horizontal=True,
+        key="market_mode",
+        help="台股：法人籌碼 + 技術面選股  ／  美股：Form4 / 選擇權流量 / 機構動向",
+    )
+    st.divider()
+
+    if market == "台股":
+        nav = st.radio("功能", ["📖 使用指南", "📋 持倉追蹤", "1. 選股", "2. 族群資金熱圖", "3. 個股"])
+    else:
+        nav = st.radio(
+            "功能",
+            ["📖 操作指南", "📡 籌碼雷達", "🔬 個股深潛", "🔔 監控警示"],
+            captions=["功能說明 + 指標解讀", "每日選股排行 + 巨鯨警示", "單股完整籌碼分析", "閾值設定 + 觸發記錄"],
+        )
 
 engine = WallStreetEngine()
 
@@ -57,6 +78,20 @@ engine = WallStreetEngine()
 show_staleness_banner()
 
 # ── Page routing ──
+
+# 美股模式：獨立路由，不需要 engine
+if st.session_state.get("market_mode") == "美股":
+    if nav == "📖 操作指南":
+        chip_guide.render()
+    elif nav == "📡 籌碼雷達":
+        chip_scanner.render()
+    elif nav == "🔬 個股深潛":
+        chip_deep_dive.render()
+    elif nav == "🔔 監控警示":
+        chip_monitor.render()
+    st.stop()
+
+# 台股模式
 if nav == "📖 使用指南":
     guide_page.render()
 
