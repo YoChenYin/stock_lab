@@ -26,11 +26,11 @@ if "chip_scheduler_started" not in st.session_state:
     scheduler = BackgroundScheduler(timezone=pytz.utc)
     scheduler.add_job(
         _run_chip_fetch,
-        CronTrigger(hour=17, minute=10, timezone=pytz.utc),  # UTC 17:10 = 台灣 01:10
+        CronTrigger(hour=17, minute=25, timezone=pytz.utc),  # UTC 17:25 = 台灣 01:25
     )
     scheduler.start()
     st.session_state["chip_scheduler_started"] = True
-    print("[scheduler] 美股籌碼排程已啟動，每天台灣時間 01:10 執行")
+    print("[scheduler] 美股籌碼排程已啟動，每天台灣時間 01:25 執行")
 
 from engine.wall_street_engine import WallStreetEngine
 from engine.smart_money import calc_smart_money_score, calc_revenue_accel_score
