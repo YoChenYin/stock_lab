@@ -21,13 +21,18 @@ COMPOSITE_KEY = {
 }
 
 
+def _init_db():
+    """建立所有 tables（冪等），不依賴 package import。"""
+    import importlib.util
+    schema_path = Path(__file__).resolve().parents[2] / "chip_module" / "db" / "schema.py"
+    spec = importlib.util.spec_from_file_location("chip_schema", schema_path)
+    mod  = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    mod.init_db(CHIP_DB)
+
+
 def get_conn() -> sqlite3.Connection:
-    import sys
-    root = str(Path(__file__).resolve().parents[2])
-    if root not in sys.path:
-        sys.path.insert(0, root)
-    from chip_module.db.schema import init_db
-    init_db(CHIP_DB)
+    _init_db()
     conn = sqlite3.connect(CHIP_DB)
     conn.row_factory = sqlite3.Row
     return conn
