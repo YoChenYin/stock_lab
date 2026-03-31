@@ -30,6 +30,7 @@ if "chip_scheduler_started" not in st.session_state:
     )
     scheduler.start()
     st.session_state["chip_scheduler_started"] = True
+    print("[scheduler] 美股籌碼排程已啟動，每天台灣時間 23:00 執行")
 
 from engine.wall_street_engine import WallStreetEngine
 from engine.smart_money import calc_smart_money_score, calc_revenue_accel_score
