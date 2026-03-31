@@ -26,7 +26,7 @@ if "chip_scheduler_started" not in st.session_state:
     scheduler = BackgroundScheduler(timezone=pytz.utc)
     scheduler.add_job(
         _run_chip_fetch,
-        CronTrigger(hour=17, minute=0, timezone=pytz.utc),  # UTC 17:00 = 台灣 01:00
+        CronTrigger(hour=15, minute=0, timezone=pytz.utc),  # UTC 15:00 = 台灣 23:00
     )
     scheduler.start()
     st.session_state["chip_scheduler_started"] = True
