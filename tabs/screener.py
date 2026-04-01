@@ -52,9 +52,25 @@ def _get_capital(engine, sid: str) -> float:
     return 0
 
 
+def _has_flipped_to_buy(series, max_days: int = 3) -> bool:
+    """
+    判斷是否在近 max_days 天內由賣超轉買超：
+    - 近 1~max_days 天全為買超（streak 在 1~max_days）
+    - 轉折前一天為賣超（確認是真正的翻轉，不是一直在買）
+    """
+    vals = series.dropna().values
+    if len(vals) < max_days + 2:
+        return False
+    s = _streak(series)
+    if not (1 <= s <= max_days):
+        return False
+    # 轉折前一天必須是賣超
+    return vals[-(s + 1)] < 0
+
+
 @st.cache_data(ttl=43200)
 def _run_scan(_engine, stock_map_items):
-    results, inst_results = [], []
+    results, inst_results, flip_results = [], [], []
 
     for sid, name in stock_map_items:
         df, rev = _engine.fetch_data(sid)
@@ -117,9 +133,27 @@ def _run_scan(_engine, stock_map_items):
                     "投信力道(5D)": f"{df['it_net'].tail(5).sum()/vol5*100:.2f}" if vol5 else "0",
                 })
 
-    res_df  = pd.DataFrame(results).sort_values("SMS", ascending=False) if results else pd.DataFrame()
-    inst_df = pd.DataFrame(inst_results).sort_values("SMS", ascending=False) if inst_results else pd.DataFrame()
-    return res_df, inst_df
+        # 外資/投信由賣轉買偵測
+        if len(df) >= 10 and ("f_net" in df.columns or "it_net" in df.columns):
+            f_flip  = _has_flipped_to_buy(df["f_net"])  if "f_net"  in df.columns else False
+            it_flip = _has_flipped_to_buy(df["it_net"]) if "it_net" in df.columns else False
+            if f_flip or it_flip:
+                f_s  = _streak(df["f_net"])  if "f_net"  in df.columns else 0
+                it_s = _streak(df["it_net"]) if "it_net" in df.columns else 0
+                flip_results.append({
+                    "代碼": sid, "名稱": name, "均線": is_aligned,
+                    "SMS":  sms["score"], "籌碼訊號": sms["signal"],
+                    "蓄力": coil["label"],
+                    "外資":  f"↑轉買{f_s}天"  if f_flip  else "—",
+                    "投信":  f"↑轉買{it_s}天" if it_flip else "—",
+                    "觸發": ("外資+投信" if f_flip and it_flip
+                             else "外資" if f_flip else "投信"),
+                })
+
+    res_df   = pd.DataFrame(results).sort_values("SMS", ascending=False)   if results   else pd.DataFrame()
+    inst_df  = pd.DataFrame(inst_results).sort_values("SMS", ascending=False) if inst_results else pd.DataFrame()
+    flip_df  = pd.DataFrame(flip_results).sort_values("SMS", ascending=False) if flip_results else pd.DataFrame()
+    return res_df, inst_df, flip_df
 
 
 def render(engine):
@@ -141,7 +175,7 @@ def render(engine):
         return
 
     with st.spinner("掃描全市場，請稍候..."):
-        res_df, inst_df = _run_scan(engine, tuple(STOCK_POOL.items()))
+        res_df, inst_df, flip_df = _run_scan(engine, tuple(STOCK_POOL.items()))
 
     if not res_df.empty:
         st.subheader("📈 營收加速 + SMS 評分排行")
@@ -155,6 +189,16 @@ def render(engine):
         st.dataframe(inst_df.style.background_gradient(
             subset=["SMS"], cmap="OrRd").format(precision=2),
             use_container_width=True)
+
+    if not flip_df.empty:
+        st.subheader("🔀 外資/投信由賣轉買（3日內）")
+        st.caption("近 1~3 個交易日由賣超翻轉為買超，轉折前一天確認為賣超")
+        st.dataframe(flip_df.style.background_gradient(
+            subset=["SMS"], cmap="Blues").format(precision=2),
+            use_container_width=True)
+    else:
+        st.subheader("🔀 外資/投信由賣轉買（3日內）")
+        st.info("目前無外資或投信在 3 日內由賣轉買的標的。")
 
     # Combined screen
     st.subheader("🚀 雙強標的：營收加速 × 籌碼加速")
