@@ -62,7 +62,10 @@ def _call_gemini(model, prompt: str, fallback: dict | None = None,
                 pass
         return fallback
     except Exception as e:
-        print(f"[Gemini error] {e}")
+        print(f"[Gemini error] {type(e).__name__}: {e}")
+        if fallback == {}:
+            # 把錯誤存進 fallback 讓 UI 可以顯示
+            return {"_error": str(e)}
         return fallback
 
 
@@ -346,6 +349,7 @@ class WallStreetEngine:
     # ─────────────────────────────────────────────────────
 
     @st.cache_data(ttl=3600)
+    @st.cache_data(ttl=43200)  # 12小時，避免每次重整都打 Gemini API
     def get_ai_dashboard_data(_self, sid: str, name: str,
                                df: pd.DataFrame, rev: pd.DataFrame,
                                real_chip: dict | None = None) -> dict | None:

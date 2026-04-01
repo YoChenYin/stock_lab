@@ -162,8 +162,9 @@ elif nav == "3. 個股":
 
     with st.spinner(f"AI 分析 {name}..."):
         ai_data = engine.get_ai_dashboard_data(sid, name, df, rev, real_chip)
-    if not ai_data:
-        st.error("AI 分析失敗，請檢查 Gemini API Key。")
+    if not ai_data or "_error" in ai_data:
+        err = ai_data.get("_error", "ai_model 未初始化，請確認 GEMINI_API_KEY") if ai_data else "ai_model 未初始化，請確認 GEMINI_API_KEY"
+        st.error(f"AI 分析失敗：{err}")
         st.stop()
 
     from ui.cards import stock_header
