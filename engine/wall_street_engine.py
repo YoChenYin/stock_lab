@@ -588,7 +588,8 @@ AI 回測歷史勝率：{hit_rate:.1%}
                 if nxt:
                     a = nxt.find("a")
                     if a and "href" in a.attrs:
-                        pdf_url = f"https://mopsov.twse.com.tw{a['href']}"
+                        href = a['href']
+                        pdf_url = href if href.startswith('http') else f"https://mopsov.twse.com.tw{href}"
 
             return {"date": date_val, "event": info_val, "url": pdf_url, "status": "success"}
         except Exception as e:

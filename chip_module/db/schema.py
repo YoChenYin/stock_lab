@@ -3,10 +3,12 @@ chip_module/db/schema.py
 初始化 SQLite schema，可獨立執行或在 stock lab 啟動時呼叫。
 """
 
+import os
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "chip.db"
+# 支援 env var，方便 Zeabur Persistent Volume 掛載到統一路徑
+DB_PATH = Path(os.environ.get("CHIP_DB_PATH", Path(__file__).parent.parent / "chip.db"))
 
 
 def get_conn(db_path: Path = DB_PATH) -> sqlite3.Connection:

@@ -10,6 +10,31 @@ from engine.alerts import check_alerts, show_alert_toasts
 from sector_data import STOCK_POOL, SECTOR_GROUPS
 
 
+def _streak(series) -> int:
+    """從最近一日往回數連買(+N)或連賣(-N)天數"""
+    vals = series.dropna().values
+    if len(vals) == 0:
+        return 0
+    sign = 1 if vals[-1] > 0 else (-1 if vals[-1] < 0 else 0)
+    if sign == 0:
+        return 0
+    count = 0
+    for v in reversed(vals):
+        if (v > 0) == (sign > 0):
+            count += 1
+        else:
+            break
+    return sign * count
+
+
+def _fmt_streak(n: int) -> str:
+    if n > 0:
+        return f"買+{n}天"
+    if n < 0:
+        return f"賣{n}天"
+    return "—"
+
+
 def _get_capital(engine, sid: str) -> float:
     try:
         import datetime
@@ -84,6 +109,8 @@ def _run_scan(_engine, stock_map_items):
                     "SMS":  sms["score"],  "籌碼訊號": sms["signal"],
                     "蓄力": coil["label"],
                     "1週集中度%":  f"{conc[5]:.2f}",
+                    "外資連買/賣": _fmt_streak(_streak(df["f_net"])),
+                    "投信連買/賣": _fmt_streak(_streak(df["it_net"])),
                     "外資乖離%":   f"{((c_p/fc)-1)*100:.2f}" if fc > 0 else "N/A",
                     "投信乖離%":   f"{((c_p/itc)-1)*100:.2f}" if itc > 0 else "N/A",
                     "外資力道(5D)": f"{df['f_net'].tail(5).sum()/vol5*100:.2f}" if vol5 else "0",
