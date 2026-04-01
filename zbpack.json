@@ -1,4 +1,4 @@
 {
   "python_version": "3.11",
-  "streamlit_entry": "main.py"
+  "start_command": "bash start.sh"
 }

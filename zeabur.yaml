@@ -1,6 +1,2 @@
-# Zeabur main app 設定
-# Cron Job 服務（chip-daily-fetch）請在 Zeabur Dashboard 另建，見 DEPLOY.md
-build:
-  command: pip install -r requirements.txt
-run:
-  command: bash start.sh
+# Zeabur service config
+# start_command is set in zbpack.json
