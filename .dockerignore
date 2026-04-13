@@ -1,0 +1,23 @@
+# Python bytecache (compiled for wrong Python version)
+__pycache__/
+*.pyc
+*.pyo
+
+# Git history (not needed in image)
+.git/
+.gitignore
+
+# Secrets (use Zeabur Variables instead)
+.streamlit/secrets.toml
+.env
+
+# SQLite DB (use Persistent Volume)
+*.db
+*.duckdb
+
+# Dev tools
+.DS_Store
+Thumbs.db
+README.md
+DEPLOY.md
+start.sh
